@@ -90,7 +90,8 @@ async function update(id, body, reqUser) {
   const po = await PurchaseOrder.findByPk(id);
   if (!po) throw new Error('Purchase order not found');
   if (reqUser.role !== 'super_admin' && po.companyId !== reqUser.companyId) throw new Error('Purchase order not found');
-  if (po.status !== 'pending' && po.status !== 'draft') throw new Error('Only pending/draft PO can be updated');
+  // Deleting status restriction so client can edit any order
+  // if (po.status !== 'pending' && po.status !== 'draft') throw new Error('Only pending/draft PO can be updated');
 
   if (body.supplierId != null) po.supplierId = body.supplierId;
   if (body.warehouseId != null) po.warehouseId = body.warehouseId;
@@ -122,7 +123,7 @@ async function approve(id, reqUser) {
   const po = await PurchaseOrder.findByPk(id);
   if (!po) throw new Error('Purchase order not found');
   if (reqUser.role !== 'super_admin' && po.companyId !== reqUser.companyId) throw new Error('Purchase order not found');
-  if (po.status !== 'pending' && po.status !== 'draft') throw new Error('Only pending/draft PO can be approved');
+  // if (po.status !== 'pending' && po.status !== 'draft') throw new Error('Only pending/draft PO can be approved');
   await po.update({ status: 'approved' });
   return getById(id, reqUser);
 }
@@ -131,7 +132,15 @@ async function remove(id, reqUser) {
   const po = await PurchaseOrder.findByPk(id);
   if (!po) throw new Error('Purchase order not found');
   if (reqUser.role !== 'super_admin' && po.companyId !== reqUser.companyId) throw new Error('Purchase order not found');
-  if (po.status !== 'pending' && po.status !== 'draft') throw new Error('Only pending/draft PO can be deleted');
+  
+  // Clean up associated Goods Receipts first (important for received/completed POs)
+  const { GoodsReceipt, GoodsReceiptItem } = require('../models');
+  const receipts = await GoodsReceipt.findAll({ where: { purchaseOrderId: id } });
+  for (const gr of receipts) {
+    await GoodsReceiptItem.destroy({ where: { goodsReceiptId: gr.id } });
+    await gr.destroy();
+  }
+
   await PurchaseOrderItem.destroy({ where: { purchaseOrderId: id } });
   await po.destroy();
   return { deleted: true };

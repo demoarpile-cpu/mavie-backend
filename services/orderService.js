@@ -104,10 +104,11 @@ async function update(id, data, reqUser) {
   const order = await SalesOrder.findByPk(id);
   if (!order) throw new Error('Order not found');
   if (reqUser.role !== 'super_admin' && order.companyId !== reqUser.companyId) throw new Error('Order not found');
-  const allowedStatuses = ['DRAFT', 'CONFIRMED'];
-  if (!allowedStatuses.includes((order.status || '').toUpperCase())) {
-    throw new Error('Only DRAFT or CONFIRMED orders can be edited');
-  }
+  // Removing restriction to allow editing all orders
+  // const allowedStatuses = ['DRAFT', 'CONFIRMED'];
+  // if (!allowedStatuses.includes((order.status || '').toUpperCase())) {
+  //   throw new Error('Only DRAFT or CONFIRMED orders can be edited');
+  // }
   await order.update({
     customerId: data.customerId !== undefined ? data.customerId : order.customerId,
     orderDate: data.orderDate !== undefined ? data.orderDate : order.orderDate,
@@ -143,11 +144,11 @@ async function remove(id, reqUser) {
   const order = await SalesOrder.findByPk(id);
   if (!order) throw new Error('Order not found');
   if (reqUser.role !== 'super_admin' && order.companyId !== reqUser.companyId) throw new Error('Order not found');
-  const allowedStatuses = ['DRAFT', 'CONFIRMED', 'PICK_LIST_CREATED'];
-  const status = (order.status || '').toUpperCase();
-  if (!allowedStatuses.includes(status)) {
-    throw new Error(`This sales order cannot be deleted. Current status: ${status || 'Unknown'}. Only Draft, Confirmed or Pick list created orders can be deleted.`);
-  }
+  // const allowedStatuses = ['DRAFT', 'CONFIRMED', 'PICK_LIST_CREATED'];
+  // const status = (order.status || '').toUpperCase();
+  // if (!allowedStatuses.includes(status)) {
+  //   throw new Error(`This sales order cannot be deleted. Current status: ${status || 'Unknown'}. Only Draft, Confirmed or Pick list created orders can be deleted.`);
+  // }
   const { PickList, PickListItem, PackingTask, Shipment } = require('../models');
   await OrderItem.destroy({ where: { salesOrderId: order.id } });
   const pickLists = await PickList.findAll({ where: { salesOrderId: order.id } });
