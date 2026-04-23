@@ -17,6 +17,8 @@ router.post('/products', requireRole(...writeRoles), inventoryController.createP
 router.post('/products/bulk', requireRole(...writeRoles), inventoryController.bulkCreateProducts);
 router.post('/products/:id/alternative-skus', requireRole(...writeRoles), inventoryController.addAlternativeSku);
 router.post('/products/:id/duplicate', requireRole(...writeRoles), inventoryController.duplicateProduct);
+router.get('/products/:id/history', requireRole(...readRoles), inventoryController.getProductHistory);
+router.put('/products/:id/documents', requireRole(...writeRoles), inventoryController.updateProductDocuments);
 router.put('/products/:id', requireRole(...writeRoles), inventoryController.updateProduct);
 router.delete('/products/:id', requireRole(...writeRoles), inventoryController.removeProduct);
 

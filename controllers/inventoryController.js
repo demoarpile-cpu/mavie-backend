@@ -494,6 +494,24 @@ async function duplicateProduct(req, res, next) {
   }
 }
 
+async function getProductHistory(req, res, next) {
+  try {
+    const data = await inventoryService.getProductHistory(req.params.id, req.user);
+    res.json({ success: true, data });
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function updateProductDocuments(req, res, next) {
+  try {
+    const data = await inventoryService.updateProductDocuments(req.params.id, req.body.documents, req.user);
+    res.json({ success: true, data });
+  } catch (err) {
+    next(err);
+  }
+}
+
 module.exports = {
   listProducts,
   getProduct,
@@ -501,6 +519,8 @@ module.exports = {
   bulkCreateProducts,
   updateProduct,
   duplicateProduct,
+  getProductHistory,
+  updateProductDocuments,
   addAlternativeSku,
   removeProduct,
   listCategories,

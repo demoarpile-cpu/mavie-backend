@@ -1,4 +1,4 @@
-const { Product, Category, ProductStock, Warehouse, Company, Supplier, InventoryAdjustment, CycleCount, Batch, Movement, Bundle, BundleItem, sequelize } = require('../models');
+const { Product, Category, ProductStock, Warehouse, Company, Supplier, InventoryAdjustment, CycleCount, Batch, Movement, Bundle, BundleItem, PurchaseOrder, PurchaseOrderItem, sequelize } = require('../models');
 const { Op } = require('sequelize');
 
 /** Ensure product JSON fields from API are proper objects/arrays (e.g. SQLite may return strings) */
@@ -1913,6 +1913,31 @@ async function removeMovement(id, reqUser) {
   }
 }
 
+async function getProductHistory(productId, reqUser) {
+  const where = { productId };
+  const history = await PurchaseOrderItem.findAll({
+    where,
+    include: [
+      {
+        model: PurchaseOrder,
+        where: reqUser.role !== 'super_admin' ? { companyId: reqUser.companyId } : {},
+        include: [{ model: Supplier, attributes: ['id', 'name'] }]
+      }
+    ],
+    order: [[PurchaseOrder, 'createdAt', 'DESC']]
+  });
+  return history;
+}
+
+async function updateProductDocuments(productId, documents, reqUser) {
+  const product = await Product.findByPk(productId);
+  if (!product) throw new Error('Product not found');
+  if (reqUser.role !== 'super_admin' && product.companyId !== reqUser.companyId) throw new Error('Product not found');
+  
+  await product.update({ documents });
+  return normalizeProductJson(product);
+}
+
 module.exports = {
   listProducts,
   listCategories,
@@ -1948,4 +1973,6 @@ module.exports = {
   getMovementById,
   updateMovement,
   removeMovement,
+  getProductHistory,
+  updateProductDocuments,
 };

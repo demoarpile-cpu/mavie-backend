@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
 const { sequelize } = require('./models');
 const routes = require('./routes');
 const superadminController = require('./controllers/superadminController');
@@ -29,6 +30,31 @@ app.use((req, res, next) => {
   console.log(`[DEBUG] ${req.method} ${req.path}`);
   next();
 });
+
+// File Upload API (Base64 approach for simplicity without multer)
+app.post('/api/upload', authenticate, (req, res) => {
+  try {
+    const { fileName, fileData } = req.body; 
+    if (!fileName || !fileData) return res.status(400).json({ success: false, message: 'No file data' });
+
+    const base64Data = fileData.replace(/^data:.*;base64,/, "");
+    const safeName = fileName.replace(/[^a-z0-9.]/gi, '_').toLowerCase();
+    const finalName = `${Date.now()}-${safeName}`;
+    const filePath = path.join(__dirname, 'public/uploads', finalName);
+    
+    fs.writeFileSync(filePath, base64Data, 'base64');
+    
+    // Return relative URL
+    const fileUrl = `${req.protocol}://${req.get('host')}/uploads/${finalName}`;
+    res.json({ success: true, url: fileUrl });
+  } catch (err) {
+    console.error('Upload Error:', err);
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
+
 
 // Sales orders - register FIRST so DELETE /api/orders/sales/:id never 404s
 const soRoles = ['super_admin', 'company_admin', 'warehouse_manager', 'inventory_manager', 'picker', 'packer', 'viewer'];
@@ -248,6 +274,23 @@ async function start() {
       }
     } catch (migrationErr) {
       console.error('[Migration Error] Failure adding currency to products:', migrationErr.message);
+    }
+
+    // Safe migration: ensure documents column exists in products
+    try {
+      const queryInterface = sequelize.getQueryInterface();
+      const tableDescription = await queryInterface.describeTable('products');
+      if (!tableDescription.documents) {
+        console.log('[Migration] Column documents not found in products, attempting to add...');
+        await queryInterface.addColumn('products', 'documents', {
+          type: require('sequelize').DataTypes.JSON,
+          allowNull: true,
+          defaultValue: null,
+        });
+        console.log('[Migration] Added documents column to products table.');
+      }
+    } catch (migrationErr) {
+      console.error('[Migration Error] Failure adding documents to products:', migrationErr.message);
     }
 
     // Safe migration: ensure new columns exist in production_orders
