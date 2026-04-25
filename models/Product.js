@@ -42,6 +42,7 @@ const Product = sequelize.define('Product', {
   alternativeSkus: { type: DataTypes.JSON, allowNull: true },
   documents: { type: DataTypes.JSON, allowNull: true },
   currency: { type: DataTypes.STRING, defaultValue: 'USD', allowNull: true },
+  warehouseId: { type: DataTypes.INTEGER, allowNull: true, field: 'warehouse_id' },
   defaultProductionAreaId: { type: DataTypes.INTEGER, allowNull: true },
   isPhysicalBundle: { type: DataTypes.BOOLEAN, defaultValue: false, field: 'is_physical_bundle' },
 }, {

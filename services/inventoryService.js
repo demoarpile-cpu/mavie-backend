@@ -409,6 +409,7 @@ async function updateProduct(id, data, reqUser) {
   if (data.alternativeSkus !== undefined) upd.alternativeSkus = Array.isArray(data.alternativeSkus) ? data.alternativeSkus : product.alternativeSkus;
   if (data.currency !== undefined) upd.currency = data.currency;
   if (data.defaultProductionAreaId !== undefined) upd.defaultProductionAreaId = data.defaultProductionAreaId;
+  if (data.warehouseId !== undefined) upd.warehouseId = data.warehouseId;
   if (Object.keys(upd).length === 0) return normalizeProductJson(product);
   console.log('[DEBUG_SERVICE] Final Update Object:', JSON.stringify(upd, null, 2));
   await product.update(upd);

@@ -56,6 +56,8 @@ Company.hasMany(Category, { foreignKey: 'companyId' });
 Category.belongsTo(Company, { foreignKey: 'companyId' });
 Company.hasMany(Product, { foreignKey: 'companyId' });
 Product.belongsTo(Company, { foreignKey: 'companyId' });
+Product.belongsTo(Warehouse, { foreignKey: 'warehouseId', as: 'Warehouse' });
+Warehouse.hasMany(Product, { foreignKey: 'warehouseId' });
 Company.hasMany(Customer, { foreignKey: 'companyId' });
 Customer.belongsTo(Company, { foreignKey: 'companyId' });
 Company.hasMany(Supplier, { foreignKey: 'companyId' });

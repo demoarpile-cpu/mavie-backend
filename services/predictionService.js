@@ -1,4 +1,4 @@
-const { Product, SalesOrder, OrderItem, ProductStock, ProductionFormula, sequelize } = require('../models');
+const { Product, SalesOrder, OrderItem, ProductStock, ProductionFormula, Warehouse, sequelize } = require('../models');
 const { Op } = require('sequelize');
 const dayjs = require('dayjs');
 
@@ -8,10 +8,12 @@ async function getPredictionData(companyId) {
         where: { companyId, status: 'ACTIVE' },
         include: [
             { model: ProductStock, as: 'ProductStocks' },
+            { model: Warehouse, as: 'Warehouse', attributes: ['name'] },
             { 
                 model: ProductionFormula, 
                 where: { isDefault: true, companyId },
-                required: false
+                required: false,
+                include: [{ model: Warehouse, as: 'TargetWarehouse', attributes: ['name'] }]
             }
         ]
     });
@@ -140,6 +142,7 @@ async function getPredictionData(companyId) {
             status,
             costPrice: p.costPrice,
             warehouseId: p.warehouseId || (formula ? formula.warehouseId : null),
+            warehouseName: p.Warehouse?.name || formula?.TargetWarehouse?.name || null,
             supplierId: p.supplierId,
             productionAreaId: formula ? formula.productionAreaId : null,
             hasFormula: !!formula,
