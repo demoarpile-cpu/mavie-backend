@@ -217,6 +217,7 @@ async function createProduct(data, reqUser) {
     alternativeSkus: Array.isArray(data.alternativeSkus) ? data.alternativeSkus : null,
     currency: data.currency || (reqUser.currencyPreference) || 'USD',
     defaultProductionAreaId: data.defaultProductionAreaId || null,
+    warehouseId: data.warehouseId || data.initialWarehouseId || null,
   };
   console.log('[DEBUG_SERVICE] Creating Product Payload:', JSON.stringify(payload, null, 2));
   const created = await Product.create(payload);
@@ -409,7 +410,9 @@ async function updateProduct(id, data, reqUser) {
   if (data.alternativeSkus !== undefined) upd.alternativeSkus = Array.isArray(data.alternativeSkus) ? data.alternativeSkus : product.alternativeSkus;
   if (data.currency !== undefined) upd.currency = data.currency;
   if (data.defaultProductionAreaId !== undefined) upd.defaultProductionAreaId = data.defaultProductionAreaId;
-  if (data.warehouseId !== undefined) upd.warehouseId = data.warehouseId;
+  if (data.warehouseId !== undefined || data.initialWarehouseId !== undefined) {
+    upd.warehouseId = data.warehouseId !== undefined ? data.warehouseId : data.initialWarehouseId;
+  }
   if (Object.keys(upd).length === 0) return normalizeProductJson(product);
   console.log('[DEBUG_SERVICE] Final Update Object:', JSON.stringify(upd, null, 2));
   await product.update(upd);

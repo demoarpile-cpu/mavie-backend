@@ -1,11 +1,15 @@
-const { sequelize } = require('../config/db');
-async function check() {
-  try {
-    const [results] = await sequelize.query("DESCRIBE products");
-    console.log(JSON.stringify(results, null, 2));
-  } catch (err) {
-    console.error(err);
-  }
-  process.exit();
+const { sequelize } = require('../models');
+
+async function checkCols() {
+    try {
+        const [results] = await sequelize.query('DESCRIBE suppliers');
+        console.log('📋 Suppliers Table Structure:');
+        console.table(results);
+        process.exit(0);
+    } catch (err) {
+        console.error('❌ Failed to describe table:', err);
+        process.exit(1);
+    }
 }
-check();
+
+checkCols();
